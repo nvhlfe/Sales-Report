@@ -457,7 +457,65 @@
     }
 
     function renderSummary() {
+
       summaryBody.innerHTML = '';
+
+      let totalCases = 0;
+      let totalFeeAll = 0;
+      let totalIssuedAll = 0;
+      let totalNoFeeAll = 0;
+
+      reportData.forEach((person, index) => {
+
+        let cases = 0;
+        let fee = 0;
+        let issued = 0;
+        let noFee = 0;
+
+        Object.values(person.daily).forEach(dayItem => {
+
+          if(!dayItem.cases) return;
+
+          dayItem.cases.forEach(item => {
+
+            const value = Number(item.fee || 0);
+
+            cases++;
+            fee += value;
+
+            if(item.status === 'issued') {
+              issued += value;
+            }
+
+            if(item.status === 'none') {
+              noFee += value;
+            }
+          });
+        });
+
+        totalCases += cases;
+        totalFeeAll += fee;
+        totalIssuedAll += issued;
+        totalNoFeeAll += noFee;
+
+        summaryBody.innerHTML += `
+          <tr>
+            <td class="border p-3 text-center">${index + 1}</td>
+            <td class="border p-3 text-center">${person.group}</td>
+            <td class="border p-3 text-center">${person.msdl}</td>
+            <td class="border p-3">${person.name}</td>
+            <td class="border p-3 text-center font-bold">${cases}</td>
+            <td class="border p-3 text-center text-blue-700 font-bold">${fee.toLocaleString()}</td>
+            <td class="border p-3 text-center text-green-700 font-bold">${issued.toLocaleString()}</td>
+            <td class="border p-3 text-center text-red-700 font-bold">${noFee.toLocaleString()}</td>
+          </tr>
+        `;
+      });
+
+      document.getElementById('sumCases').innerText = totalCases;
+      document.getElementById('sumFee').innerText = totalFeeAll.toLocaleString();
+      document.getElementById('sumIssued').innerText = totalIssuedAll.toLocaleString();
+      document.getElementById('sumNoFee').innerText = totalNoFeeAll.toLocaleString();
     }
 
     async function saveCurrentMonth() {
@@ -489,6 +547,7 @@
 
           renderHeader();
           renderTable();
+          renderSummary();
         }
       );
     }

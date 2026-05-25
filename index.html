@@ -75,9 +75,9 @@
             </select>
           </div>
 
-
           <button
-            onclick="exportExcel()"            class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-3 rounded-xl font-semibold">
+            onclick="exportExcel()"
+            class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-3 rounded-xl font-semibold">
             Export Excel
           </button>
 
@@ -93,13 +93,11 @@
 
     </div>
 
-    
-<div class="bg-blue-50 border border-blue-200 rounded-2xl px-4 py-3 mb-4 text-sm text-blue-700 font-semibold">
-  * Nhấp vào ô ngày để nhập phí
+    <div class="bg-blue-50 border border-blue-200 rounded-2xl px-4 py-3 mb-4 text-sm text-blue-700 font-semibold">
+  * NHẤP VÀO Ô NGÀY ĐỂ THÊM HỒ SƠ
 </div>
 
 <div id="reportTab" class="bg-white rounded-3xl shadow-lg overflow-auto">
-
 
       <table class="w-full border-collapse text-sm min-w-[2600px]">
 
@@ -114,59 +112,34 @@
 
     </div>
 
+    
     <div id="overviewTab" class="hidden">
 
-      <div class="bg-white rounded-3xl shadow-lg overflow-auto p-4 mb-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 mb-6">
 
-        <div class="flex items-center justify-between mb-5">
-
-          <div>
-            <div class="text-xs uppercase tracking-[3px] text-gray-400 font-semibold">
-              OVERVIEW DASHBOARD
-            </div>
-
-            <div class="text-3xl font-bold text-gray-800 mt-2">
-              Tổng Quan Doanh Số Theo Ngày
-            </div>
-          </div>
-
-          <div class="text-sm text-gray-500">
-            Realtime Production Tracking
-          </div>
-
+        <div class="bg-white rounded-3xl shadow-lg p-6">
+          <div class="text-gray-500 text-sm">TỔNG TVV</div>
+          <div id="ovAgents" class="text-4xl font-bold mt-3 text-blue-700">0</div>
         </div>
 
-        <div class="grid grid-cols-2 xl:grid-cols-4 gap-5 mb-6">
-
-          <div class="bg-blue-50 border border-blue-200 rounded-2xl p-5">
-            <div class="text-xs uppercase tracking-widest text-blue-500 font-bold">
-              Tổng TVV
-            </div>
-            <div id="ovAgents" class="text-5xl font-black text-blue-700 mt-3">0</div>
-          </div>
-
-          <div class="bg-green-50 border border-green-200 rounded-2xl p-5">
-            <div class="text-xs uppercase tracking-widest text-green-500 font-bold">
-              Phát Hành
-            </div>
-            <div id="ovIssued" class="text-5xl font-black text-green-700 mt-3">0</div>
-          </div>
-
-          <div class="bg-yellow-50 border border-yellow-200 rounded-2xl p-5">
-            <div class="text-xs uppercase tracking-widest text-yellow-600 font-bold">
-              Có Phí
-            </div>
-            <div id="ovPaid" class="text-5xl font-black text-yellow-700 mt-3">0</div>
-          </div>
-
-          <div class="bg-red-50 border border-red-200 rounded-2xl p-5">
-            <div class="text-xs uppercase tracking-widest text-red-500 font-bold">
-              Chưa Phí
-            </div>
-            <div id="ovNoFee" class="text-5xl font-black text-red-700 mt-3">0</div>
-          </div>
-
+        <div class="bg-white rounded-3xl shadow-lg p-6">
+          <div class="text-gray-500 text-sm">PHÁT HÀNH</div>
+          <div id="ovIssued" class="text-4xl font-bold mt-3 text-green-700">0</div>
         </div>
+
+        <div class="bg-white rounded-3xl shadow-lg p-6">
+          <div class="text-gray-500 text-sm">CÓ PHÍ</div>
+          <div id="ovPaid" class="text-4xl font-bold mt-3 text-yellow-700">0</div>
+        </div>
+
+        <div class="bg-white rounded-3xl shadow-lg p-6">
+          <div class="text-gray-500 text-sm">CHƯA PHÍ</div>
+          <div id="ovNoFee" class="text-4xl font-bold mt-3 text-red-700">0</div>
+        </div>
+
+      </div>
+
+      <div class="bg-white rounded-3xl shadow-lg overflow-auto">
 
         <table class="w-full border-collapse text-sm min-w-[2600px]">
 
@@ -180,7 +153,8 @@
 
     </div>
 
-    <div id="summaryTab" class="hidden">
+
+<div id="summaryTab" class="hidden">
 
       <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 mb-6">
 
@@ -233,7 +207,28 @@
 
   </div>
 
-  <script>
+  <script type="module">
+
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+
+    import {
+      getFirestore,
+      doc,
+      setDoc,
+      onSnapshot
+    } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCakqu3JhQPeXmJ0grVNBRI8CkG5kfgD38",
+      authDomain: "d03-dashboard.firebaseapp.com",
+      projectId: "d03-dashboard",
+      storageBucket: "d03-dashboard.firebasestorage.app",
+      messagingSenderId: "468681430726",
+      appId: "1:468681430726:web:30faa703221e4e6515e9c7"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
     const monthSelect = document.getElementById('monthSelect');
     const tableHeader = document.getElementById('tableHeader');
@@ -242,10 +237,7 @@
     const summaryBody = document.getElementById('summaryBody');
     const realtimeClock = document.getElementById('realtimeClock');
 
-    let monthlyDatabase = {};
-
-    let currentModalPerson = null;
-    let currentModalDay = null;
+    let reportData = [];
 
     function initMonthOptions() {
       for(let i = 1; i <= 12; i++) {
@@ -266,17 +258,9 @@
           msdl: '100001',
           name: 'Nguyễn Văn A',
           daily: {}
-        },
-        {
-          group: 'G02',
-          msdl: '100002',
-          name: 'Trần Thị B',
-          daily: {}
         }
       ];
     }
-
-    let reportData = createDefaultData();
 
     function getDaysInMonth(month) {
       return new Date(2026, month, 0).getDate();
@@ -284,7 +268,6 @@
 
     function updateRealtimeClock() {
       const now = new Date();
-
       realtimeClock.innerHTML = `${now.toLocaleDateString('vi-VN')} - ${now.toLocaleTimeString('vi-VN')}`;
     }
 
@@ -300,7 +283,6 @@
       if(tab === 'summary') {
         document.getElementById('summaryTab').classList.remove('hidden');
         renderSummary();
-      renderOverview();
       }
 
       if(tab === 'overview') {
@@ -325,7 +307,6 @@
         let totalFeeInDay = 0;
 
         reportData.forEach(person => {
-
           const dayData = person.daily[day];
 
           if(dayData && dayData.cases) {
@@ -357,9 +338,25 @@
       `;
 
       for(let day = 1; day <= days; day++) {
+
+        const dayOfWeek = new Date(2026, month - 1, day).getDay();
+
+        let bgClass = 'bg-gray-50';
+        let textClass = '';
+
+        if(dayOfWeek === 0) {
+          bgClass = 'bg-red-100';
+          textClass = 'text-red-700';
+        }
+
+        if(dayOfWeek === 6) {
+          bgClass = 'bg-yellow-100';
+          textClass = 'text-yellow-700';
+        }
+
         html += `
-          <th class="border p-2 text-center min-w-[120px] bg-gray-50">
-            ${day}
+          <th class="border p-2 text-center min-w-[120px] ${bgClass}">
+            <div class="${textClass} font-bold">${day}</div>
           </th>
         `;
       }
@@ -462,21 +459,11 @@
           });
 
           row += `
-            <td class="border p-1 align-top bg-white">
+            <td onclick="openCaseModal(${personIndex}, ${day})" class="border p-1 align-top bg-white cursor-pointer hover:bg-blue-50 transition-all">
 
-              <div class="flex flex-col gap-1">
-
-                
-<div
-  onclick="openCaseModal(${personIndex}, ${day})"
-  class="cursor-pointer min-h-[20px] hover:bg-blue-50 rounded-lg transition-all">
-</div>
-
-
-                
+              <div class="flex flex-col gap-1 min-h-[60px]">
 
                 ${data.cases.map((item, caseIndex) => `
-
                   <div class="border rounded p-1 bg-gray-50 flex flex-col gap-1">
 
                     <div class="flex items-center justify-between">
@@ -542,143 +529,6 @@
       });
     }
 
-    function renderOverview() {
-
-      const overviewHead = document.getElementById('overviewHead');
-      const overviewBody = document.getElementById('overviewBody');
-
-      overviewBody.innerHTML = '';
-
-      const month = parseInt(monthSelect.value);
-      const days = getDaysInMonth(month);
-
-      let headHtml = `
-        <tr>
-          <th class="border p-3 bg-gray-200 min-w-[60px]">STT</th>
-          <th class="border p-3 bg-gray-200 min-w-[240px] text-left">
-            TVV
-          </th>
-      `;
-
-      for(let day = 1; day <= days; day++) {
-        headHtml += `
-          <th class="border p-3 bg-blue-50 min-w-[90px] text-center">
-            ${day}
-          </th>
-        `;
-      }
-
-      headHtml += `
-          <th class="border p-3 bg-blue-100">Tổng Phí</th>
-          <th class="border p-3 bg-green-100">Phát Hành</th>
-          <th class="border p-3 bg-yellow-100">Có Phí</th>
-          <th class="border p-3 bg-red-100">Chưa Phí</th>
-        </tr>
-      `;
-
-      overviewHead.innerHTML = headHtml;
-
-      let totalIssued = 0;
-      let totalPaid = 0;
-      let totalNoFee = 0;
-
-      reportData.forEach((person, index) => {
-
-        let totalFee = 0;
-        let issued = 0;
-        let paid = 0;
-        let noFee = 0;
-
-        let row = `
-          <tr>
-            <td class="border p-3 text-center font-semibold">
-              ${index + 1}
-            </td>
-
-            <td class="border p-3 min-w-[240px]">
-              <div class="flex flex-col">
-
-                <div class="text-[11px] text-gray-400 font-semibold">
-                  ${person.group} · ${person.msdl}
-                </div>
-
-                <div class="font-bold text-gray-800 mt-1">
-                  ${person.name}
-                </div>
-
-              </div>
-            </td>
-        `;
-
-        for(let day = 1; day <= days; day++) {
-
-          const data = person.daily[day] || { cases: [] };
-
-          let dayTotal = 0;
-
-          data.cases.forEach(item => {
-
-            const fee = Number(item.fee || 0);
-
-            dayTotal += fee;
-            totalFee += fee;
-
-            if(item.status === 'issued') {
-              issued += fee;
-            }
-
-            if(item.status === 'paid') {
-              paid += fee;
-            }
-
-            if(item.status === 'none') {
-              noFee += fee;
-            }
-
-          });
-
-          row += `
-            <td class="border p-2 text-center">
-              <div class="font-black text-blue-700 text-sm">
-                ${dayTotal.toLocaleString()}
-              </div>
-            </td>
-          `;
-        }
-
-        totalIssued += issued;
-        totalPaid += paid;
-        totalNoFee += noFee;
-
-        row += `
-          <td class="border p-3 text-center font-black text-blue-700 text-lg">
-            ${totalFee.toLocaleString()}
-          </td>
-
-          <td class="border p-3 text-center font-black text-green-700 text-lg">
-            ${issued.toLocaleString()}
-          </td>
-
-          <td class="border p-3 text-center font-black text-yellow-700 text-lg">
-            ${paid.toLocaleString()}
-          </td>
-
-          <td class="border p-3 text-center font-black text-red-700 text-lg">
-            ${noFee.toLocaleString()}
-          </td>
-        `;
-
-        row += '</tr>';
-
-        overviewBody.innerHTML += row;
-      });
-
-      document.getElementById('ovAgents').innerText = reportData.length;
-      document.getElementById('ovIssued').innerText = totalIssued.toLocaleString();
-      document.getElementById('ovPaid').innerText = totalPaid.toLocaleString();
-      document.getElementById('ovNoFee').innerText = totalNoFee.toLocaleString();
-    }
-
     function renderSummary() {
 
       summaryBody.innerHTML = '';
@@ -741,10 +591,109 @@
       document.getElementById('sumNoFee').innerText = totalNoFeeAll.toLocaleString();
     }
 
+    async function saveCurrentMonth() {
+
+      const month = monthSelect.value;
+
+      await setDoc(
+        doc(db, 'reports', month),
+        {
+          data: reportData,
+          updatedAt: new Date().toISOString()
+        }
+      );
+    }
+
+    function loadMonthData() {
+
+      const month = monthSelect.value;
+
+      onSnapshot(
+        doc(db, 'reports', month),
+        (snapshot) => {
+
+          if(snapshot.exists()) {
+            reportData = snapshot.data().data;
+          } else {
+            reportData = createDefaultData();
+          }
+
+          renderHeader();
+          renderTable();
+          renderSummary();
+          renderOverview();
+        }
+      );
+    }
+
     function updateField(index, field, value) {
       reportData[index][field] = value;
       saveCurrentMonth();
     }
+
+    function addCase(personIndex, day) {
+
+      if(!reportData[personIndex].daily[day]) {
+        reportData[personIndex].daily[day] = { cases: [] };
+      }
+
+      reportData[personIndex].daily[day].cases.push({
+        fee: '',
+        status: 'none'
+      });
+
+      saveCurrentMonth();
+      renderHeader();
+      renderTable();
+    }
+
+    function updateCaseFee(personIndex, day, caseIndex, value) {
+
+      reportData[personIndex].daily[day].cases[caseIndex].fee = value;
+
+      saveCurrentMonth();
+      renderHeader();
+      renderTable();
+    }
+
+    function updateCaseStatus(personIndex, day, caseIndex, value) {
+
+      reportData[personIndex].daily[day].cases[caseIndex].status = value;
+
+      saveCurrentMonth();
+      renderHeader();
+      renderTable();
+    }
+
+    function deleteCase(personIndex, day, caseIndex) {
+
+      reportData[personIndex].daily[day].cases.splice(caseIndex, 1);
+
+      if(reportData[personIndex].daily[day].cases.length === 0) {
+        delete reportData[personIndex].daily[day];
+      }
+
+      saveCurrentMonth();
+      renderHeader();
+      renderTable();
+    }
+
+    function addPerson() {
+
+      reportData.push({
+        group: 'GROUP',
+        msdl: '000000',
+        name: 'Nhân sự mới',
+        daily: {}
+      });
+
+      saveCurrentMonth();
+      renderTable();
+    }
+
+    
+    let currentModalPerson = null;
+    let currentModalDay = null;
 
     function openCaseModal(personIndex, day) {
 
@@ -767,9 +716,7 @@
       const status = document.getElementById('modalStatus').value;
 
       if(!reportData[currentModalPerson].daily[currentModalDay]) {
-        reportData[currentModalPerson].daily[currentModalDay] = {
-          cases: []
-        };
+        reportData[currentModalPerson].daily[currentModalDay] = { cases: [] };
       }
 
       reportData[currentModalPerson].daily[currentModalDay].cases.push({
@@ -786,110 +733,26 @@
       closeCaseModal();
     }
 
-    function updateCaseFee(personIndex, day, caseIndex, value) {
-
-      reportData[personIndex].daily[day].cases[caseIndex].fee = value;
-
-      saveCurrentMonth();
-      renderHeader();
-      renderTable();
-      renderSummary();
-      renderOverview();
-    }
-
-    function updateCaseStatus(personIndex, day, caseIndex, value) {
-
-      reportData[personIndex].daily[day].cases[caseIndex].status = value;
-
-      saveCurrentMonth();
-      renderHeader();
-      renderTable();
-      renderSummary();
-      renderOverview();
-    }
-
-    function deleteCase(personIndex, day, caseIndex) {
-
-      reportData[personIndex].daily[day].cases.splice(caseIndex, 1);
-
-      if(reportData[personIndex].daily[day].cases.length === 0) {
-        delete reportData[personIndex].daily[day];
-      }
-
-      saveCurrentMonth();
-      renderHeader();
-      renderTable();
-      renderSummary();
-      renderOverview();
-    }
-
-    function addPerson() {
-
-      reportData.push({
-        group: 'GROUP',
-        msdl: '000000',
-        name: 'Nhân sự mới',
-        daily: {}
-      });
-
-      saveCurrentMonth();
-      renderTable();
-    }
-
-    function saveCurrentMonth() {
-      monthlyDatabase[monthSelect.value] = JSON.parse(JSON.stringify(reportData));
-    }
-
-    function loadMonthData() {
-
-      const month = monthSelect.value;
-
-      if(monthlyDatabase[month]) {
-        reportData = JSON.parse(JSON.stringify(monthlyDatabase[month]));
-      } else {
-        reportData = createDefaultData();
-        monthlyDatabase[month] = JSON.parse(JSON.stringify(reportData));
-      }
-
-      renderHeader();
-      renderTable();
-      renderSummary();
-      renderOverview();
-    }
-
-
     function applySorting() {
 
       const type = document.getElementById('sortSelect').value;
 
       if(type === 'group') {
 
-        reportData.sort((a, b) => {
-          return a.group.localeCompare(b.group);
-        });
+        reportData.sort((a, b) => a.group.localeCompare(b.group));
 
       } else if(type === 'highest') {
 
-        reportData.sort((a, b) => {
-
-          const totalA = calculatePersonTotal(a);
-          const totalB = calculatePersonTotal(b);
-
-          return totalB - totalA;
-        });
-
+        reportData.sort((a, b) => calculateTotal(b) - calculateTotal(a));
       }
 
       renderHeader();
       renderTable();
       renderSummary();
-
-      if(typeof renderOverview === 'function') {
-        renderOverview();
-      }
+      renderOverview();
     }
 
-    function calculatePersonTotal(person) {
+    function calculateTotal(person) {
 
       let total = 0;
 
@@ -906,136 +769,162 @@
       return total;
     }
 
+    function renderOverview() {
+
+      const overviewHead = document.getElementById('overviewHead');
+      const overviewBody = document.getElementById('overviewBody');
+
+      if(!overviewHead || !overviewBody) return;
+
+      const month = parseInt(monthSelect.value);
+      const days = getDaysInMonth(month);
+
+      let head = `
+        <tr>
+          <th class="border p-3">STT</th>
+          <th class="border p-3 min-w-[240px]">TVV</th>
+      `;
+
+      for(let day = 1; day <= days; day++) {
+
+        const dayOfWeek = new Date(2026, month - 1, day).getDay();
+
+        let bg = 'bg-gray-50';
+
+        if(dayOfWeek === 0) bg = 'bg-red-100';
+        if(dayOfWeek === 6) bg = 'bg-yellow-100';
+
+        head += `<th class="border p-3 ${bg}">${day}</th>`;
+      }
+
+      head += `
+          <th class="border p-3 bg-blue-100">Tổng</th>
+          <th class="border p-3 bg-green-100">PH</th>
+          <th class="border p-3 bg-yellow-100">CPF</th>
+          <th class="border p-3 bg-red-100">CF</th>
+        </tr>
+      `;
+
+      overviewHead.innerHTML = head;
+
+      overviewBody.innerHTML = '';
+
+      let ovIssued = 0;
+      let ovPaid = 0;
+      let ovNoFee = 0;
+
+      reportData.forEach((person, index) => {
+
+        let total = 0;
+        let issued = 0;
+        let paid = 0;
+        let noFee = 0;
+
+        let row = `
+          <tr>
+            <td class="border p-3 text-center">${index + 1}</td>
+
+            <td class="border p-3">
+              <div class="text-[11px] text-gray-400">${person.group} · ${person.msdl}</div>
+              <div class="font-bold">${person.name}</div>
+            </td>
+        `;
+
+        for(let day = 1; day <= days; day++) {
+
+          const data = person.daily[day] || { cases: [] };
+
+          let dayTotal = 0;
+          let classColor = '';
+
+          data.cases.forEach(item => {
+
+            const fee = Number(item.fee || 0);
+
+            dayTotal += fee;
+            total += fee;
+
+            if(item.status === 'issued') {
+              issued += fee;
+              classColor = 'text-green-700';
+            }
+
+            if(item.status === 'paid') {
+              paid += fee;
+              classColor = 'text-yellow-700';
+            }
+
+            if(item.status === 'none') {
+              noFee += fee;
+              classColor = 'text-red-700';
+            }
+          });
+
+          row += `
+            <td class="border p-2 text-center font-bold ${classColor}">
+              ${dayTotal ? dayTotal.toLocaleString() : ''}
+            </td>
+          `;
+        }
+
+        ovIssued += issued;
+        ovPaid += paid;
+        ovNoFee += noFee;
+
+        row += `
+          <td class="border p-3 text-center font-bold text-blue-700">${total.toLocaleString()}</td>
+          <td class="border p-3 text-center font-bold text-green-700">${issued.toLocaleString()}</td>
+          <td class="border p-3 text-center font-bold text-yellow-700">${paid.toLocaleString()}</td>
+          <td class="border p-3 text-center font-bold text-red-700">${noFee.toLocaleString()}</td>
+        </tr>
+        `;
+
+        overviewBody.innerHTML += row;
+      });
+
+      document.getElementById('ovAgents').innerText = reportData.length;
+      document.getElementById('ovIssued').innerText = ovIssued.toLocaleString();
+      document.getElementById('ovPaid').innerText = ovPaid.toLocaleString();
+      document.getElementById('ovNoFee').innerText = ovNoFee.toLocaleString();
+    }
+
 
     function exportExcel() {
 
       const workbook = XLSX.utils.book_new();
 
-      const month = parseInt(monthSelect.value);
-      const days = getDaysInMonth(month);
+      const sheetData = [];
 
-      const reportSheetData = [];
+      reportData.forEach(person => {
 
-      let header = ['STT', 'MÃ NHÓM', 'MSDL', 'HỌ TÊN'];
-
-      for(let day = 1; day <= days; day++) {
-        header.push(`NGÀY ${day}`);
-      }
-
-      header.push('TỔNG PHÍ');
-      header.push('CHƯA PHÍ');
-      header.push('PHÁT HÀNH');
-      header.push('CÓ PHÍ CHƯA PH');
-
-      reportSheetData.push(header);
-
-      reportData.forEach((person, index) => {
-
-        let totalFee = 0;
-        let noFee = 0;
-        let issued = 0;
-        let paid = 0;
-
-        const row = [
-          index + 1,
+        sheetData.push([
           person.group,
           person.msdl,
           person.name
-        ];
-
-        for(let day = 1; day <= days; day++) {
-
-          const dayData = person.daily[day] || { cases: [] };
-
-          let text = '';
-
-          dayData.cases.forEach((item, i) => {
-
-            const fee = Number(item.fee || 0);
-
-            totalFee += fee;
-
-            if(item.status === 'none') noFee += fee;
-            if(item.status === 'issued') issued += fee;
-            if(item.status === 'paid') paid += fee;
-
-            text += `HS${i + 1}: ${fee} - ${item.status}`;
-
-            if(i < dayData.cases.length - 1) {
-              text += ' | ';
-            }
-          });
-
-          row.push(text);
-        }
-
-        row.push(totalFee);
-        row.push(noFee);
-        row.push(issued);
-        row.push(paid);
-
-        reportSheetData.push(row);
-      });
-
-      const reportSheet = XLSX.utils.aoa_to_sheet(reportSheetData);
-
-      XLSX.utils.book_append_sheet(workbook, reportSheet, 'REPORT');
-
-      const summarySheetData = [
-        ['STT', 'MÃ NHÓM', 'MSDL', 'HỌ TÊN', 'SỐ HỒ SƠ', 'TỔNG PHÍ', 'PHÁT HÀNH', 'CHƯA PHÍ']
-      ];
-
-      reportData.forEach((person, index) => {
-
-        let cases = 0;
-        let totalFee = 0;
-        let issued = 0;
-        let noFee = 0;
-
-        Object.values(person.daily).forEach(dayItem => {
-
-          if(!dayItem.cases) return;
-
-          dayItem.cases.forEach(item => {
-
-            const fee = Number(item.fee || 0);
-
-            cases++;
-            totalFee += fee;
-
-            if(item.status === 'issued') {
-              issued += fee;
-            }
-
-            if(item.status === 'none') {
-              noFee += fee;
-            }
-          });
-        });
-
-        summarySheetData.push([
-          index + 1,
-          person.group,
-          person.msdl,
-          person.name,
-          cases,
-          totalFee,
-          issued,
-          noFee
         ]);
+
       });
 
-      const summarySheet = XLSX.utils.aoa_to_sheet(summarySheetData);
+      const ws = XLSX.utils.aoa_to_sheet(sheetData);
 
-      XLSX.utils.book_append_sheet(workbook, summarySheet, 'TONG_HOP');
+      XLSX.utils.book_append_sheet(workbook, ws, 'REPORT');
 
-      XLSX.writeFile(workbook, `D03_THEO_DOI_DOANH_SO_${month}_2026.xlsx`);
+      XLSX.writeFile(workbook, 'D03_REPORT_2026.xlsx');
     }
+
+    window.showTab = showTab;
+    window.exportExcel = exportExcel;
+    window.addPerson = addPerson;
 
     window.openCaseModal = openCaseModal;
     window.closeCaseModal = closeCaseModal;
     window.saveModalCase = saveModalCase;
     window.applySorting = applySorting;
+    window.deleteCase = deleteCase;
+
+    window.updateField = updateField;
+    window.updateCaseFee = updateCaseFee;
+    window.updateCaseStatus = updateCaseStatus;
 
     monthSelect.addEventListener('change', loadMonthData);
 
@@ -1047,57 +936,31 @@
 
   </script>
 
+
   <div id="caseModal" class="hidden fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
 
     <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6">
 
       <div class="flex items-center justify-between mb-5">
+        <h2 class="text-2xl font-bold text-gray-800">Thêm Hồ Sơ</h2>
 
-        <h2 class="text-2xl font-bold text-gray-800">
-          Thêm Hồ Sơ
-        </h2>
-
-        <button
-          onclick="closeCaseModal()"
-          class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold">
+        <button onclick="closeCaseModal()" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200">
           ×
         </button>
-
       </div>
 
       <div class="space-y-4">
 
-        <div>
-          <label class="block text-sm font-semibold mb-2">
-            Phí Đóng
-          </label>
+        <input type="number" id="modalFee" placeholder="Nhập phí đóng"
+          class="w-full border rounded-xl px-4 py-3" />
 
-          <input
-            type="number"
-            id="modalFee"
-            placeholder="Nhập phí đóng"
-            class="w-full border rounded-xl px-4 py-3"
-          />
-        </div>
+        <select id="modalStatus" class="w-full border rounded-xl px-4 py-3">
+          <option value="none">Chưa phí</option>
+          <option value="paid">Có phí</option>
+          <option value="issued">Phát hành</option>
+        </select>
 
-        <div>
-          <label class="block text-sm font-semibold mb-2">
-            Trạng Thái Hồ Sơ
-          </label>
-
-          <select
-            id="modalStatus"
-            class="w-full border rounded-xl px-4 py-3">
-
-            <option value="none">Chưa phí</option>
-            <option value="paid">Có phí</option>
-            <option value="issued">Phát hành</option>
-
-          </select>
-        </div>
-
-        <button
-          onclick="saveModalCase()"
+        <button onclick="saveModalCase()"
           class="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl py-3 font-bold">
           Lưu Hồ Sơ
         </button>

@@ -72,6 +72,7 @@
               <option value="default">Mặc định</option>
               <option value="group">Theo mã nhóm</option>
               <option value="highest">Người nộp nhiều nhất</option>
+              <option value="issued">Người phát hành nhiều nhất</option>
             </select>
           </div>
 
@@ -193,6 +194,7 @@
               <th class="border p-3">SỐ HỒ SƠ</th>
               <th class="border p-3">TỔNG PHÍ</th>
               <th class="border p-3">PHÁT HÀNH</th>
+              <th class="border p-3">PENDING</th>
               <th class="border p-3">CHƯA PHÍ</th>
             </tr>
           </thead>
@@ -571,6 +573,8 @@
         totalIssuedAll += issued;
         totalNoFeeAll += noFee;
 
+        const pending = fee - issued - noFee;
+
         summaryBody.innerHTML += `
           <tr>
             <td class="border p-3 text-center">${index + 1}</td>
@@ -580,6 +584,7 @@
             <td class="border p-3 text-center font-bold">${cases}</td>
             <td class="border p-3 text-center text-blue-700 font-bold">${fee.toLocaleString()}</td>
             <td class="border p-3 text-center text-green-700 font-bold">${issued.toLocaleString()}</td>
+            <td class="border p-3 text-center text-yellow-700 font-bold">${pending.toLocaleString()}</td>
             <td class="border p-3 text-center text-red-700 font-bold">${noFee.toLocaleString()}</td>
           </tr>
         `;
@@ -744,6 +749,10 @@
       } else if(type === 'highest') {
 
         reportData.sort((a, b) => calculateTotal(b) - calculateTotal(a));
+
+      } else if(type === 'issued') {
+
+        reportData.sort((a, b) => calculateIssued(b) - calculateIssued(a));
       }
 
       renderHeader();
@@ -751,6 +760,29 @@
       renderSummary();
       renderOverview();
     }
+
+    
+    function calculateIssued(person) {
+
+      let total = 0;
+
+      Object.values(person.daily).forEach(dayItem => {
+
+        if(!dayItem.cases) return;
+
+        dayItem.cases.forEach(item => {
+
+          if(item.status === 'issued') {
+            total += Number(item.fee || 0);
+          }
+
+        });
+
+      });
+
+      return total;
+    }
+
 
     function calculateTotal(person) {
 
@@ -895,7 +927,7 @@ function exportExcel() {
       const workbook = XLSX.utils.book_new();
 
       const summaryData = [
-        ['STT', 'MÃ NHÓM', 'MSDL', 'HỌ TÊN', 'SỐ HỒ SƠ', 'TỔNG PHÍ', 'PHÁT HÀNH', 'CÓ PHÍ', 'CHƯA PHÍ']
+        ['STT', 'MÃ NHÓM', 'MSDL', 'HỌ TÊN', 'SỐ HỒ SƠ', 'TỔNG PHÍ', 'PHÁT HÀNH', 'PENDING', 'CÓ PHÍ', 'CHƯA PHÍ']
       ];
 
       reportData.forEach((person, index) => {
@@ -933,6 +965,8 @@ function exportExcel() {
 
         });
 
+        const pending = totalFee - issued - noFee;
+
         summaryData.push([
           index + 1,
           person.group,
@@ -941,6 +975,7 @@ function exportExcel() {
           totalCases,
           totalFee,
           issued,
+          pending,
           paid,
           noFee
         ]);

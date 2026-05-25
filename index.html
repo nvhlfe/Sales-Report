@@ -143,8 +143,25 @@
 
   </div>
 
-  <script>
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  onSnapshot
+} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+  const firebaseConfig = {
+  apiKey: "AIzaSyCakqu3JhQPeXmJ0grVNBRI8CkG5kfgD38",
+  authDomain: "d03-dashboard.firebaseapp.com",
+  projectId: "d03-dashboard",
+  storageBucket: "d03-dashboard.firebasestorage.app",
+  messagingSenderId: "468681430726",
+  appId: "1:468681430726:web:30faa703221e4e6515e9c7"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
     const monthSelect = document.getElementById('monthSelect');
     const tableHeader = document.getElementById('tableHeader');
     const dailySummaryHeader = document.getElementById('dailySummaryHeader');
@@ -577,25 +594,29 @@
       renderTable();
     }
 
-    function saveCurrentMonth() {
-      monthlyDatabase[monthSelect.value] = JSON.parse(JSON.stringify(reportData));
-    }
-
     function loadMonthData() {
 
-      const month = monthSelect.value;
+  const month = monthSelect.value;
 
-      if(monthlyDatabase[month]) {
-        reportData = JSON.parse(JSON.stringify(monthlyDatabase[month]));
+  onSnapshot(
+    doc(db, 'reports', month),
+    (snapshot) => {
+
+      if(snapshot.exists()) {
+
+        reportData = snapshot.data().data;
+
       } else {
+
         reportData = createDefaultData();
-        monthlyDatabase[month] = JSON.parse(JSON.stringify(reportData));
       }
 
       renderHeader();
       renderTable();
       renderSummary();
     }
+  );
+}
 
     function exportExcel() {
 

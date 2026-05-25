@@ -144,24 +144,28 @@
   </div>
 
   <script type="module">
+
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 
-import {
-  getFirestore,
-  doc,
-  setDoc,
-  onSnapshot
-} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-  const firebaseConfig = {
-  apiKey: "AIzaSyCakqu3JhQPeXmJ0grVNBRI8CkG5kfgD38",
-  authDomain: "d03-dashboard.firebaseapp.com",
-  projectId: "d03-dashboard",
-  storageBucket: "d03-dashboard.firebasestorage.app",
-  messagingSenderId: "468681430726",
-  appId: "1:468681430726:web:30faa703221e4e6515e9c7"
-};
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+    import {
+      getFirestore,
+      doc,
+      setDoc,
+      onSnapshot
+    } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCakqu3JhQPeXmJ0grVNBRI8CkG5kfgD38",
+      authDomain: "d03-dashboard.firebaseapp.com",
+      projectId: "d03-dashboard",
+      storageBucket: "d03-dashboard.firebasestorage.app",
+      messagingSenderId: "468681430726",
+      appId: "1:468681430726:web:30faa703221e4e6515e9c7"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
     const monthSelect = document.getElementById('monthSelect');
     const tableHeader = document.getElementById('tableHeader');
     const dailySummaryHeader = document.getElementById('dailySummaryHeader');
@@ -169,7 +173,7 @@ const db = getFirestore(app);
     const summaryBody = document.getElementById('summaryBody');
     const realtimeClock = document.getElementById('realtimeClock');
 
-    let monthlyDatabase = {};
+    let reportData = [];
 
     function initMonthOptions() {
       for(let i = 1; i <= 12; i++) {
@@ -190,17 +194,9 @@ const db = getFirestore(app);
           msdl: '100001',
           name: 'Nguyễn Văn A',
           daily: {}
-        },
-        {
-          group: 'G02',
-          msdl: '100002',
-          name: 'Trần Thị B',
-          daily: {}
         }
       ];
     }
-
-    let reportData = createDefaultData();
 
     function getDaysInMonth(month) {
       return new Date(2026, month, 0).getDate();
@@ -208,7 +204,6 @@ const db = getFirestore(app);
 
     function updateRealtimeClock() {
       const now = new Date();
-
       realtimeClock.innerHTML = `${now.toLocaleDateString('vi-VN')} - ${now.toLocaleTimeString('vi-VN')}`;
     }
 
@@ -242,7 +237,6 @@ const db = getFirestore(app);
         let totalFeeInDay = 0;
 
         reportData.forEach(person => {
-
           const dayData = person.daily[day];
 
           if(dayData && dayData.cases) {
@@ -397,7 +391,6 @@ const db = getFirestore(app);
                 </div>
 
                 ${data.cases.map((item, caseIndex) => `
-
                   <div class="border rounded p-1 bg-gray-50 flex flex-col gap-1">
 
                     <div class="flex items-center justify-between">
@@ -464,65 +457,40 @@ const db = getFirestore(app);
     }
 
     function renderSummary() {
-
       summaryBody.innerHTML = '';
+    }
 
-      let totalCases = 0;
-      let totalFeeAll = 0;
-      let totalIssuedAll = 0;
-      let totalNoFeeAll = 0;
+    async function saveCurrentMonth() {
 
-      reportData.forEach((person, index) => {
+      const month = monthSelect.value;
 
-        let cases = 0;
-        let fee = 0;
-        let issued = 0;
-        let noFee = 0;
+      await setDoc(
+        doc(db, 'reports', month),
+        {
+          data: reportData,
+          updatedAt: new Date().toISOString()
+        }
+      );
+    }
 
-        Object.values(person.daily).forEach(dayItem => {
+    function loadMonthData() {
 
-          if(!dayItem.cases) return;
+      const month = monthSelect.value;
 
-          dayItem.cases.forEach(item => {
+      onSnapshot(
+        doc(db, 'reports', month),
+        (snapshot) => {
 
-            const value = Number(item.fee || 0);
+          if(snapshot.exists()) {
+            reportData = snapshot.data().data;
+          } else {
+            reportData = createDefaultData();
+          }
 
-            cases++;
-            fee += value;
-
-            if(item.status === 'issued') {
-              issued += value;
-            }
-
-            if(item.status === 'none') {
-              noFee += value;
-            }
-          });
-        });
-
-        totalCases += cases;
-        totalFeeAll += fee;
-        totalIssuedAll += issued;
-        totalNoFeeAll += noFee;
-
-        summaryBody.innerHTML += `
-          <tr>
-            <td class="border p-3 text-center">${index + 1}</td>
-            <td class="border p-3 text-center">${person.group}</td>
-            <td class="border p-3 text-center">${person.msdl}</td>
-            <td class="border p-3">${person.name}</td>
-            <td class="border p-3 text-center font-bold">${cases}</td>
-            <td class="border p-3 text-center text-blue-700 font-bold">${fee.toLocaleString()}</td>
-            <td class="border p-3 text-center text-green-700 font-bold">${issued.toLocaleString()}</td>
-            <td class="border p-3 text-center text-red-700 font-bold">${noFee.toLocaleString()}</td>
-          </tr>
-        `;
-      });
-
-      document.getElementById('sumCases').innerText = totalCases;
-      document.getElementById('sumFee').innerText = totalFeeAll.toLocaleString();
-      document.getElementById('sumIssued').innerText = totalIssuedAll.toLocaleString();
-      document.getElementById('sumNoFee').innerText = totalNoFeeAll.toLocaleString();
+          renderHeader();
+          renderTable();
+        }
+      );
     }
 
     function updateField(index, field, value) {
@@ -544,7 +512,6 @@ const db = getFirestore(app);
       saveCurrentMonth();
       renderHeader();
       renderTable();
-      renderSummary();
     }
 
     function updateCaseFee(personIndex, day, caseIndex, value) {
@@ -554,7 +521,6 @@ const db = getFirestore(app);
       saveCurrentMonth();
       renderHeader();
       renderTable();
-      renderSummary();
     }
 
     function updateCaseStatus(personIndex, day, caseIndex, value) {
@@ -564,7 +530,6 @@ const db = getFirestore(app);
       saveCurrentMonth();
       renderHeader();
       renderTable();
-      renderSummary();
     }
 
     function deleteCase(personIndex, day, caseIndex) {
@@ -578,7 +543,6 @@ const db = getFirestore(app);
       saveCurrentMonth();
       renderHeader();
       renderTable();
-      renderSummary();
     }
 
     function addPerson() {
@@ -594,100 +558,20 @@ const db = getFirestore(app);
       renderTable();
     }
 
-    function loadMonthData() {
-
-  const month = monthSelect.value;
-
-  onSnapshot(
-    doc(db, 'reports', month),
-    (snapshot) => {
-
-      if(snapshot.exists()) {
-
-        reportData = snapshot.data().data;
-
-      } else {
-
-        reportData = createDefaultData();
-      }
-
-      renderHeader();
-      renderTable();
-      renderSummary();
-    }
-  );
-}
-
     function exportExcel() {
-
-      const workbook = XLSX.utils.book_new();
-
-      const reportSheetData = [];
-
-      const month = parseInt(monthSelect.value);
-      const days = getDaysInMonth(month);
-
-      let header = ['STT', 'MÃ NHÓM', 'MSDL', 'HỌ TÊN'];
-
-      for(let i = 1; i <= days; i++) {
-        header.push(`NGÀY ${i}`);
-      }
-
-      header.push('TỔNG PHÍ');
-      header.push('CHƯA PHÍ');
-      header.push('PHÁT HÀNH');
-      header.push('CÓ PHÍ CHƯA PH');
-
-      reportSheetData.push(header);
-
-      reportData.forEach((person, index) => {
-
-        let totalFee = 0;
-        let noFee = 0;
-        let issued = 0;
-        let paid = 0;
-
-        const row = [
-          index + 1,
-          person.group,
-          person.msdl,
-          person.name
-        ];
-
-        for(let day = 1; day <= days; day++) {
-
-          const dayData = person.daily[day] || { cases: [] };
-
-          const text = dayData.cases.map((item, i) => {
-
-            const fee = Number(item.fee || 0);
-
-            totalFee += fee;
-
-            if(item.status === 'none') noFee += fee;
-            if(item.status === 'issued') issued += fee;
-            if(item.status === 'paid') paid += fee;
-
-            return `HS${i + 1}: ${fee} - ${item.status}`;
-          }).join(' | ');
-
-          row.push(text);
-        }
-
-        row.push(totalFee);
-        row.push(noFee);
-        row.push(issued);
-        row.push(paid);
-
-        reportSheetData.push(row);
-      });
-
-      const reportSheet = XLSX.utils.aoa_to_sheet(reportSheetData);
-
-      XLSX.utils.book_append_sheet(workbook, reportSheet, 'REPORT');
-
-      XLSX.writeFile(workbook, `D03_THEO_DOI_DOANH_SO_${month}_2026.xlsx`);
+      alert('Export Excel đang hoạt động');
     }
+
+    window.showTab = showTab;
+    window.exportExcel = exportExcel;
+    window.addPerson = addPerson;
+
+    window.addCase = addCase;
+    window.deleteCase = deleteCase;
+
+    window.updateField = updateField;
+    window.updateCaseFee = updateCaseFee;
+    window.updateCaseStatus = updateCaseStatus;
 
     monthSelect.addEventListener('change', loadMonthData);
 

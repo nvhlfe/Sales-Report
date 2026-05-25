@@ -4,69 +4,45 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>D03 - THEO DÕI DOANH SỐ 2026</title>
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
   <style>
     body {
       background: #f3f4f6;
       font-family: Arial, sans-serif;
     }
-
-    .status-none {
-      background: #f3f4f6;
-      color: #6b7280;
-    }
-
-    .status-paid {
-      background: #dcfce7;
-      color: #166534;
-    }
-
-    .status-issued {
-      background: #dbeafe;
-      color: #1d4ed8;
-    }
-
-    .day-card {
-      transition: all 0.2s ease;
-    }
-
-    .day-card:hover {
-      transform: translateY(-2px);
-    }
   </style>
 </head>
 <body>
-  <div class="max-w-[2200px] mx-auto p-4">
+
+  <div class="max-w-[2400px] mx-auto p-4">
 
     <div class="bg-white rounded-3xl shadow-lg p-6 mb-5">
 
       <div class="flex flex-col xl:flex-row gap-4 justify-between items-end">
 
         <div>
-          <h1 class="text-3xl font-bold text-gray-800">D03 - THEO DÕI DOANH SỐ 2026</h1>
-          <p class="text-gray-500 mt-1">Dashboard quản lý phí & phát hành theo ngày</p>
+          <h1 class="text-3xl font-bold text-gray-800">
+            D03 - THEO DÕI DOANH SỐ 2026
+          </h1>
+
+          <p class="text-gray-500 mt-1">
+            Dashboard quản lý doanh số theo ngày
+          </p>
+
           <div id="realtimeClock" class="mt-3 text-sm font-semibold text-blue-600"></div>
         </div>
 
-        <div class="flex gap-3 flex-wrap items-end">
+        <div class="flex flex-wrap gap-3 items-end">
 
           <div>
-            <label class="block text-sm font-semibold mb-2">Tháng báo cáo</label>
-            <select id="monthSelect" class="border rounded-xl px-4 py-3 min-w-[220px]">
-              <option value="1">Tháng 1/2026</option>
-              <option value="2">Tháng 2/2026</option>
-              <option value="3">Tháng 3/2026</option>
-              <option value="4">Tháng 4/2026</option>
-              <option value="5" selected>Tháng 5/2026</option>
-              <option value="6">Tháng 6/2026</option>
-              <option value="7">Tháng 7/2026</option>
-              <option value="8">Tháng 8/2026</option>
-              <option value="9">Tháng 9/2026</option>
-              <option value="10">Tháng 10/2026</option>
-              <option value="11">Tháng 11/2026</option>
-              <option value="12">Tháng 12/2026</option>
-            </select>
+            <label class="block text-sm font-semibold mb-2">
+              Tháng báo cáo
+            </label>
+
+            <select id="monthSelect" class="border rounded-xl px-4 py-3 min-w-[220px]"></select>
           </div>
 
           <button
@@ -83,19 +59,20 @@
 
           <button
             onclick="exportExcel()"
-            class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl font-semibold">
+            class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-3 rounded-xl font-semibold">
             Export Excel
           </button>
 
           <button
             onclick="addPerson()"
-            class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-xl font-semibold">
+            class="bg-purple-600 hover:bg-purple-700 text-white px-5 py-3 rounded-xl font-semibold">
             + Thêm người
           </button>
 
         </div>
 
       </div>
+
     </div>
 
     <div id="reportTab" class="bg-white rounded-3xl shadow-lg overflow-auto">
@@ -169,13 +146,25 @@
   <script>
 
     const monthSelect = document.getElementById('monthSelect');
-    const reportBody = document.getElementById('reportBody');
     const tableHeader = document.getElementById('tableHeader');
+    const dailySummaryHeader = document.getElementById('dailySummaryHeader');
+    const reportBody = document.getElementById('reportBody');
     const summaryBody = document.getElementById('summaryBody');
     const realtimeClock = document.getElementById('realtimeClock');
-    const dailySummaryHeader = document.getElementById('dailySummaryHeader');
 
     let monthlyDatabase = {};
+
+    function initMonthOptions() {
+      for(let i = 1; i <= 12; i++) {
+        const option = document.createElement('option');
+        option.value = i;
+        option.textContent = `Tháng ${i}/2026`;
+
+        if(i === 5) option.selected = true;
+
+        monthSelect.appendChild(option);
+      }
+    }
 
     function createDefaultData() {
       return [
@@ -200,8 +189,13 @@
       return new Date(2026, month, 0).getDate();
     }
 
-    function showTab(tab) {
+    function updateRealtimeClock() {
+      const now = new Date();
 
+      realtimeClock.innerHTML = `${now.toLocaleDateString('vi-VN')} - ${now.toLocaleTimeString('vi-VN')}`;
+    }
+
+    function showTab(tab) {
       document.getElementById('reportTab').classList.add('hidden');
       document.getElementById('summaryTab').classList.add('hidden');
 
@@ -221,36 +215,37 @@
       const days = getDaysInMonth(month);
 
       let summaryHtml = `
-        <th colspan="4" class="border p-3 bg-indigo-100 text-indigo-700 font-bold text-left">
-          TỔNG HỒ SƠ NỘP THEO NGÀY
+        <th colspan="4" class="border p-3 bg-indigo-100 text-left font-bold text-indigo-700">
+          TỔNG PHÍ NỘP THEO NGÀY
         </th>
       `;
 
-      for(let i=1;i<=days;i++) {
+      for(let day = 1; day <= days; day++) {
 
-        let totalCasesInDay = 0;
+        let totalFeeInDay = 0;
 
         reportData.forEach(person => {
-          const dayData = person.daily[i];
+
+          const dayData = person.daily[day];
 
           if(dayData && dayData.cases) {
-            totalCasesInDay += dayData.cases.length;
+            dayData.cases.forEach(item => {
+              totalFeeInDay += Number(item.fee || 0);
+            });
           }
         });
 
         summaryHtml += `
           <th class="border p-2 text-center bg-indigo-50 min-w-[120px]">
-            <div class="text-[10px] text-gray-500">NGÀY ${i}</div>
+            <div class="text-[10px] text-gray-500">NGÀY ${day}</div>
             <div class="text-lg font-bold text-indigo-700">
-              ${totalCasesInDay}
+              ${totalFeeInDay.toLocaleString()}
             </div>
           </th>
         `;
       }
 
-      summaryHtml += `
-        <th colspan="4" class="border bg-indigo-100"></th>
-      `;
+      summaryHtml += `<th colspan="4" class="border bg-indigo-100"></th>`;
 
       dailySummaryHeader.innerHTML = summaryHtml;
 
@@ -261,10 +256,10 @@
         <th class="border p-3 bg-gray-200 min-w-[240px]">HỌ TÊN</th>
       `;
 
-      for(let i=1;i<=days;i++) {
+      for(let day = 1; day <= days; day++) {
         html += `
           <th class="border p-2 text-center min-w-[120px] bg-gray-50">
-            ${i}
+            ${day}
           </th>
         `;
       }
@@ -277,6 +272,17 @@
       `;
 
       tableHeader.innerHTML = html;
+    }
+
+    function getStatusBg(status) {
+      switch(status) {
+        case 'paid':
+          return 'bg-yellow-100';
+        case 'issued':
+          return 'bg-green-100';
+        default:
+          return 'bg-red-100';
+      }
     }
 
     function renderTable() {
@@ -295,10 +301,7 @@
 
         let row = `
           <tr>
-
-            <td class="border p-2 text-center font-semibold">
-              ${personIndex + 1}
-            </td>
+            <td class="border p-2 text-center font-semibold">${personIndex + 1}</td>
 
             <td class="border p-2 bg-gray-50">
               <input
@@ -328,36 +331,33 @@
             </td>
         `;
 
-        for(let day=1; day<=days; day++) {
+        for(let day = 1; day <= days; day++) {
 
-          const data = person.daily[day] || {
-            cases: []
-          };
+          const data = person.daily[day] || { cases: [] };
 
-          let cellFee = 0;
-          let cellNoFee = 0;
           let cellIssued = 0;
           let cellPaid = 0;
+          let cellNoFee = 0;
 
           data.cases.forEach(item => {
-            if(item.fee) {
-              totalFee += Number(item.fee);
-              cellFee += Number(item.fee);
-            }
+
+            const fee = Number(item.fee || 0);
+
+            totalFee += fee;
 
             if(item.status === 'none') {
-              noFee++;
-              cellNoFee++;
+              noFee += fee;
+              cellNoFee += fee;
             }
 
             if(item.status === 'issued') {
-              issued++;
-              cellIssued++;
+              issued += fee;
+              cellIssued += fee;
             }
 
             if(item.status === 'paid') {
-              paidNotIssued++;
-              cellPaid++;
+              paidNotIssued += fee;
+              cellPaid += fee;
             }
           });
 
@@ -373,21 +373,24 @@
                 </button>
 
                 <div class="text-[10px] bg-gray-100 rounded p-1">
-                  HS: ${data.cases.length} | PH: ${cellIssued} | CPF: ${cellPaid} | CF: ${cellNoFee}
+                  HS: ${data.cases.length} |
+                  PH: ${cellIssued.toLocaleString()} |
+                  CPF: ${cellPaid.toLocaleString()} |
+                  CF: ${cellNoFee.toLocaleString()}
                 </div>
 
                 ${data.cases.map((item, caseIndex) => `
 
                   <div class="border rounded p-1 bg-gray-50 flex flex-col gap-1">
 
-                    <div class="flex items-center justify-between gap-1">
+                    <div class="flex items-center justify-between">
                       <div class="text-[10px] font-bold text-gray-500">
                         HS ${caseIndex + 1}
                       </div>
 
                       <button
                         onclick="deleteCase(${personIndex}, ${day}, ${caseIndex})"
-                        class="w-4 h-4 flex items-center justify-center bg-red-500 hover:bg-red-600 text-white text-[10px] rounded-full leading-none font-bold">
+                        class="w-4 h-4 rounded-full bg-red-500 hover:bg-red-600 text-white text-[10px] font-bold leading-none flex items-center justify-center">
                         ×
                       </button>
                     </div>
@@ -404,22 +407,13 @@
                       onchange="updateCaseStatus(${personIndex}, ${day}, ${caseIndex}, this.value)"
                       class="border rounded px-1 py-1 text-[10px] w-full ${getStatusBg(item.status)}">
 
-                      <option value="none" ${item.status === 'none' ? 'selected' : ''}>
-                        Chưa phí
-                      </option>
-
-                      <option value="paid" ${item.status === 'paid' ? 'selected' : ''}>
-                        Có phí
-                      </option>
-
-                      <option value="issued" ${item.status === 'issued' ? 'selected' : ''}>
-                        Phát hành
-                      </option>
+                      <option value="none" ${item.status === 'none' ? 'selected' : ''}>Chưa phí</option>
+                      <option value="paid" ${item.status === 'paid' ? 'selected' : ''}>Có phí</option>
+                      <option value="issued" ${item.status === 'issued' ? 'selected' : ''}>Phát hành</option>
 
                     </select>
 
                   </div>
-
                 `).join('')}
 
               </div>
@@ -429,23 +423,21 @@
         }
 
         row += `
-
           <td class="border p-3 text-center font-bold bg-blue-50 text-blue-700">
             ${totalFee.toLocaleString()}
           </td>
 
           <td class="border p-3 text-center font-bold bg-red-50 text-red-700">
-            ${noFee}
+            ${noFee.toLocaleString()}
           </td>
 
           <td class="border p-3 text-center font-bold bg-green-50 text-green-700">
-            ${issued}
+            ${issued.toLocaleString()}
           </td>
 
           <td class="border p-3 text-center font-bold bg-yellow-50 text-yellow-700">
-            ${paidNotIssued}
+            ${paidNotIssued.toLocaleString()}
           </td>
-
         `;
 
         row += '</tr>';
@@ -476,21 +468,19 @@
 
           dayItem.cases.forEach(item => {
 
-            cases++;
+            const value = Number(item.fee || 0);
 
-            if(item.fee) {
-              fee += Number(item.fee);
-            }
+            cases++;
+            fee += value;
 
             if(item.status === 'issued') {
-              issued++;
+              issued += value;
             }
 
             if(item.status === 'none') {
-              noFee++;
+              noFee += value;
             }
           });
-
         });
 
         totalCases += cases;
@@ -506,39 +496,27 @@
             <td class="border p-3">${person.name}</td>
             <td class="border p-3 text-center font-bold">${cases}</td>
             <td class="border p-3 text-center text-blue-700 font-bold">${fee.toLocaleString()}</td>
-            <td class="border p-3 text-center text-green-700 font-bold">${issued}</td>
-            <td class="border p-3 text-center text-red-700 font-bold">${noFee}</td>
+            <td class="border p-3 text-center text-green-700 font-bold">${issued.toLocaleString()}</td>
+            <td class="border p-3 text-center text-red-700 font-bold">${noFee.toLocaleString()}</td>
           </tr>
         `;
       });
 
       document.getElementById('sumCases').innerText = totalCases;
       document.getElementById('sumFee').innerText = totalFeeAll.toLocaleString();
-      document.getElementById('sumIssued').innerText = totalIssuedAll;
-      document.getElementById('sumNoFee').innerText = totalNoFeeAll;
-    }
-
-    function getStatusBg(status) {
-      switch(status) {
-        case 'paid':
-          return 'bg-yellow-100';
-        case 'issued':
-          return 'bg-green-100';
-        default:
-          return 'bg-red-100';
-      }
+      document.getElementById('sumIssued').innerText = totalIssuedAll.toLocaleString();
+      document.getElementById('sumNoFee').innerText = totalNoFeeAll.toLocaleString();
     }
 
     function updateField(index, field, value) {
       reportData[index][field] = value;
+      saveCurrentMonth();
     }
 
     function addCase(personIndex, day) {
 
       if(!reportData[personIndex].daily[day]) {
-        reportData[personIndex].daily[day] = {
-          cases: []
-        };
+        reportData[personIndex].daily[day] = { cases: [] };
       }
 
       reportData[personIndex].daily[day].cases.push({
@@ -549,6 +527,7 @@
       saveCurrentMonth();
       renderHeader();
       renderTable();
+      renderSummary();
     }
 
     function updateCaseFee(personIndex, day, caseIndex, value) {
@@ -556,7 +535,9 @@
       reportData[personIndex].daily[day].cases[caseIndex].fee = value;
 
       saveCurrentMonth();
+      renderHeader();
       renderTable();
+      renderSummary();
     }
 
     function updateCaseStatus(personIndex, day, caseIndex, value) {
@@ -564,12 +545,12 @@
       reportData[personIndex].daily[day].cases[caseIndex].status = value;
 
       saveCurrentMonth();
+      renderHeader();
       renderTable();
+      renderSummary();
     }
 
     function deleteCase(personIndex, day, caseIndex) {
-
-      
 
       reportData[personIndex].daily[day].cases.splice(caseIndex, 1);
 
@@ -579,14 +560,25 @@
 
       saveCurrentMonth();
       renderHeader();
-      renderHeader();
       renderTable();
       renderSummary();
     }
 
+    function addPerson() {
+
+      reportData.push({
+        group: 'GROUP',
+        msdl: '000000',
+        name: 'Nhân sự mới',
+        daily: {}
+      });
+
+      saveCurrentMonth();
+      renderTable();
+    }
+
     function saveCurrentMonth() {
-      const month = monthSelect.value;
-      monthlyDatabase[month] = JSON.parse(JSON.stringify(reportData));
+      monthlyDatabase[monthSelect.value] = JSON.parse(JSON.stringify(reportData));
     }
 
     function loadMonthData() {
@@ -600,22 +592,9 @@
         monthlyDatabase[month] = JSON.parse(JSON.stringify(reportData));
       }
 
-      loadMonthData();
-
-    updateRealtimeClock();
-
-    setInterval(() => {
-      updateRealtimeClock();
-    }, 1000);
-    }
-
-    function updateRealtimeClock() {
-
-      const now = new Date();
-
-      realtimeClock.innerHTML = `
-        ${now.toLocaleDateString('vi-VN')} - ${now.toLocaleTimeString('vi-VN')}
-      `;
+      renderHeader();
+      renderTable();
+      renderSummary();
     }
 
     function exportExcel() {
@@ -629,7 +608,7 @@
 
       let header = ['STT', 'MÃ NHÓM', 'MSDL', 'HỌ TÊN'];
 
-      for(let i=1; i<=days; i++) {
+      for(let i = 1; i <= days; i++) {
         header.push(`NGÀY ${i}`);
       }
 
@@ -642,33 +621,33 @@
 
       reportData.forEach((person, index) => {
 
-        let row = [
+        let totalFee = 0;
+        let noFee = 0;
+        let issued = 0;
+        let paid = 0;
+
+        const row = [
           index + 1,
           person.group,
           person.msdl,
           person.name
         ];
 
-        let totalFee = 0;
-        let noFee = 0;
-        let issued = 0;
-        let paid = 0;
-
-        for(let day=1; day<=days; day++) {
+        for(let day = 1; day <= days; day++) {
 
           const dayData = person.daily[day] || { cases: [] };
 
           const text = dayData.cases.map((item, i) => {
 
-            if(item.fee) {
-              totalFee += Number(item.fee);
-            }
+            const fee = Number(item.fee || 0);
 
-            if(item.status === 'none') noFee++;
-            if(item.status === 'issued') issued++;
-            if(item.status === 'paid') paid++;
+            totalFee += fee;
 
-            return `HS${i+1}: ${item.fee || 0} - ${item.status}`;
+            if(item.status === 'none') noFee += fee;
+            if(item.status === 'issued') issued += fee;
+            if(item.status === 'paid') paid += fee;
+
+            return `HS${i + 1}: ${fee} - ${item.status}`;
           }).join(' | ');
 
           row.push(text);
@@ -686,70 +665,18 @@
 
       XLSX.utils.book_append_sheet(workbook, reportSheet, 'REPORT');
 
-      const summaryData = [
-        ['STT', 'MÃ NHÓM', 'MSDL', 'HỌ TÊN', 'SỐ HỒ SƠ', 'TỔNG PHÍ', 'PHÁT HÀNH', 'CHƯA PHÍ']
-      ];
-
-      reportData.forEach((person, index) => {
-
-        let cases = 0;
-        let fee = 0;
-        let issued = 0;
-        let noFee = 0;
-
-        Object.values(person.daily).forEach(dayItem => {
-
-          if(!dayItem.cases) return;
-
-          dayItem.cases.forEach(item => {
-            cases++;
-
-            if(item.fee) fee += Number(item.fee);
-            if(item.status === 'issued') issued++;
-            if(item.status === 'none') noFee++;
-          });
-        });
-
-        summaryData.push([
-          index + 1,
-          person.group,
-          person.msdl,
-          person.name,
-          cases,
-          fee,
-          issued,
-          noFee
-        ]);
-      });
-
-      const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
-
-      XLSX.utils.book_append_sheet(workbook, summarySheet, 'TONG_HOP');
-
-      XLSX.writeFile(workbook, `AA_REPORT_THANG_${month}_2026.xlsx`);
+      XLSX.writeFile(workbook, `D03_THEO_DOI_DOANH_SO_${month}_2026.xlsx`);
     }
 
-    function addPerson() {
+    monthSelect.addEventListener('change', loadMonthData);
 
-      reportData.push({
-        group: 'GROUP',
-        msdl: '000000',
-        name: 'Nhân sự mới',
-        daily: {}
-      });
+    initMonthOptions();
+    loadMonthData();
+    updateRealtimeClock();
 
-      saveCurrentMonth();
-      renderTable();
-    }
-
-    monthSelect.addEventListener('change', () => {
-      loadMonthData();
-    });
-
-    renderHeader();
-    renderTable();
-    renderSummary();
+    setInterval(updateRealtimeClock, 1000);
 
   </script>
+
 </body>
 </html>

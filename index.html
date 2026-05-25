@@ -889,28 +889,71 @@
     }
 
 
-    function exportExcel() {
+    
+function exportExcel() {
 
       const workbook = XLSX.utils.book_new();
 
-      const sheetData = [];
+      const summaryData = [
+        ['STT', 'MÃ NHÓM', 'MSDL', 'HỌ TÊN', 'SỐ HỒ SƠ', 'TỔNG PHÍ', 'PHÁT HÀNH', 'CÓ PHÍ', 'CHƯA PHÍ']
+      ];
 
-      reportData.forEach(person => {
+      reportData.forEach((person, index) => {
 
-        sheetData.push([
+        let totalCases = 0;
+        let totalFee = 0;
+        let issued = 0;
+        let paid = 0;
+        let noFee = 0;
+
+        Object.values(person.daily).forEach(dayItem => {
+
+          if(!dayItem.cases) return;
+
+          dayItem.cases.forEach(item => {
+
+            const fee = Number(item.fee || 0);
+
+            totalCases++;
+            totalFee += fee;
+
+            if(item.status === 'issued') {
+              issued += fee;
+            }
+
+            if(item.status === 'paid') {
+              paid += fee;
+            }
+
+            if(item.status === 'none') {
+              noFee += fee;
+            }
+
+          });
+
+        });
+
+        summaryData.push([
+          index + 1,
           person.group,
           person.msdl,
-          person.name
+          person.name,
+          totalCases,
+          totalFee,
+          issued,
+          paid,
+          noFee
         ]);
 
       });
 
-      const ws = XLSX.utils.aoa_to_sheet(sheetData);
+      const ws = XLSX.utils.aoa_to_sheet(summaryData);
 
-      XLSX.utils.book_append_sheet(workbook, ws, 'REPORT');
+      XLSX.utils.book_append_sheet(workbook, ws, 'TONG_HOP');
 
-      XLSX.writeFile(workbook, 'D03_REPORT_2026.xlsx');
+      XLSX.writeFile(workbook, 'D03_TONG_HOP_2026.xlsx');
     }
+
 
     window.showTab = showTab;
     window.exportExcel = exportExcel;

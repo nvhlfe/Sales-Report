@@ -8,12 +8,34 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
-  <style>
+  
+<style>
     body {
       background: #f3f4f6;
       font-family: Arial, sans-serif;
     }
-  </style>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    .delete-row-btn {
+      opacity: 0;
+      transition: all .2s;
+    }
+
+    tr:hover .delete-row-btn {
+      opacity: 1;
+    }
+
+</style>
+
 </head>
 <body>
 
@@ -43,6 +65,21 @@
             </label>
 
             <select id="monthSelect" class="border rounded-xl px-4 py-3 min-w-[220px]"></select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold mb-2">
+              Xem theo ngày
+            </label>
+
+            <select
+              id="dayFilter"
+              onchange="applyDayFilter()"
+              class="border rounded-xl px-4 py-3 min-w-[180px]">
+
+              <option value="all">Tất cả ngày</option>
+
+            </select>
           </div>
 
           <button
@@ -306,6 +343,10 @@
 
       for(let day = 1; day <= days; day++) {
 
+        if(selectedDay !== 'all' && parseInt(selectedDay) !== day) {
+          continue;
+        }
+
         let totalFeeInDay = 0;
 
         reportData.forEach(person => {
@@ -400,9 +441,28 @@
 
         let row = `
           <tr>
-            <td class="border p-2 text-center font-semibold">${personIndex + 1}</td>
+            <td class="border p-2 text-center font-semibold">
+
+              <div class="flex items-center justify-center gap-1">
+
+                
+
+                <span>${personIndex + 1}</span>
+
+              </div>
+
+            </td>
 
             <td class="border p-2 bg-gray-50">
+
+              <div class="flex items-center gap-2">
+
+                <button
+                  onclick="deletePerson(${personIndex})"
+                  class="w-4 h-4 rounded-full bg-red-500 hover:bg-red-600 text-white text-[10px] font-bold flex items-center justify-center leading-none shrink-0">
+                  ×
+                </button>
+
               <input
                 type="text"
                 value="${person.group}"
@@ -421,16 +481,32 @@
             </td>
 
             <td class="border p-2 bg-gray-50">
+
+              <div class="flex items-center gap-2">
+
+                
+
               <input
                 type="text"
                 value="${person.name}"
                 onchange="updateField(${personIndex}, 'name', this.value)"
                 class="w-full border rounded-lg px-3 py-2"
               />
+
+              </div>
+
             </td>
         `;
 
         for(let day = 1; day <= days; day++) {
+
+          if(selectedDay !== 'all' && parseInt(selectedDay) !== day) {
+            continue;
+          }
+
+          if(selectedDay !== 'all' && parseInt(selectedDay) !== day) {
+            continue;
+          }
 
           const data = person.daily[day] || { cases: [] };
 
@@ -627,6 +703,7 @@
           renderTable();
           renderSummary();
           renderOverview();
+          initDayFilter();
         }
       );
     }
@@ -819,6 +896,8 @@
 
       for(let day = 1; day <= days; day++) {
 
+          
+
         const dayOfWeek = new Date(2026, month - 1, day).getDay();
 
         let bg = 'bg-gray-50';
@@ -863,6 +942,12 @@
         `;
 
         for(let day = 1; day <= days; day++) {
+
+          
+
+          if(selectedDay !== 'all' && parseInt(selectedDay) !== day) {
+            continue;
+          }
 
           const data = person.daily[day] || { cases: [] };
 
@@ -922,6 +1007,64 @@
 
 
     
+
+    let selectedDay = 'all';
+
+    function initDayFilter() {
+
+      const filter = document.getElementById('dayFilter');
+
+      if(!filter) return;
+
+      const month = parseInt(monthSelect.value);
+      const days = getDaysInMonth(month);
+
+      filter.innerHTML = '<option value="all">Tất cả ngày</option>';
+
+      for(let day = 1; day <= days; day++) {
+
+        filter.innerHTML += `
+          <option value="${day}">
+            Ngày ${day}
+          </option>
+        `;
+      }
+    }
+
+    function applyDayFilter() {
+
+      selectedDay = document.getElementById('dayFilter').value;
+
+      renderHeader();
+      renderTable();
+      renderSummary();
+
+      if(typeof renderOverview === 'function') {
+        renderOverview();
+      }
+    }
+
+
+
+    function deletePerson(index) {
+
+      const confirmDelete = confirm('Xóa dòng thông tin này?');
+
+      if(!confirmDelete) return;
+
+      reportData.splice(index, 1);
+
+      saveCurrentMonth();
+      renderHeader();
+      renderTable();
+      renderSummary();
+
+      if(typeof renderOverview === 'function') {
+        renderOverview();
+      }
+    }
+
+
 function exportExcel() {
 
       const workbook = XLSX.utils.book_new();
@@ -998,13 +1141,21 @@ function exportExcel() {
     window.closeCaseModal = closeCaseModal;
     window.saveModalCase = saveModalCase;
     window.applySorting = applySorting;
+    window.applyDayFilter = applyDayFilter;
+    window.deletePerson = deletePerson;
     window.deleteCase = deleteCase;
 
     window.updateField = updateField;
     window.updateCaseFee = updateCaseFee;
     window.updateCaseStatus = updateCaseStatus;
 
-    monthSelect.addEventListener('change', loadMonthData);
+    monthSelect.addEventListener('change', () => {
+      loadMonthData();
+    initDayFilter();
+      initDayFilter();
+    });
+
+    initDayFilter();
 
     initMonthOptions();
     loadMonthData();

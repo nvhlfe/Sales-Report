@@ -212,6 +212,11 @@
         </div>
 
         <div class="bg-white rounded-3xl shadow-lg p-6">
+          <div class="text-gray-500 text-sm">PENDING</div>
+          <div id="sumPending" class="text-4xl font-bold mt-3 text-yellow-700">0</div>
+        </div>
+
+        <div class="bg-white rounded-3xl shadow-lg p-6">
           <div class="text-gray-500 text-sm">CHƯA PHÍ</div>
           <div id="sumNoFee" class="text-4xl font-bold mt-3 text-red-700">0</div>
         </div>
@@ -614,6 +619,7 @@
       let totalCases = 0;
       let totalFeeAll = 0;
       let totalIssuedAll = 0;
+      let totalPendingAll = 0;
       let totalNoFeeAll = 0;
 
       reportData.forEach((person, index) => {
@@ -644,12 +650,13 @@
           });
         });
 
+        const pending = fee - issued - noFee;
+
         totalCases += cases;
         totalFeeAll += fee;
         totalIssuedAll += issued;
+        totalPendingAll += pending;
         totalNoFeeAll += noFee;
-
-        const pending = fee - issued - noFee;
 
         summaryBody.innerHTML += `
           <tr>
@@ -669,6 +676,7 @@
       document.getElementById('sumCases').innerText = totalCases;
       document.getElementById('sumFee').innerText = totalFeeAll.toLocaleString();
       document.getElementById('sumIssued').innerText = totalIssuedAll.toLocaleString();
+      document.getElementById('sumPending').innerText = totalPendingAll.toLocaleString();
       document.getElementById('sumNoFee').innerText = totalNoFeeAll.toLocaleString();
     }
 

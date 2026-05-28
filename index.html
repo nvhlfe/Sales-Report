@@ -39,6 +39,40 @@
 </head>
 <body>
 
+<div id="loginScreen" class="fixed inset-0 bg-gray-100 z-[9999] flex items-center justify-center p-4">
+
+  <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8">
+
+    <div class="text-center mb-6">
+      <h2 class="text-3xl font-bold text-gray-800">D03 LOGIN</h2>
+      <p class="text-gray-500 mt-2">Đăng nhập để truy cập dashboard</p>
+    </div>
+
+    <div class="space-y-4">
+
+      <input id="loginEmail" type="email"
+        placeholder="Email"
+        class="w-full border rounded-2xl px-4 py-4" />
+
+      <input id="loginPassword" type="password"
+        placeholder="Mật khẩu"
+        class="w-full border rounded-2xl px-4 py-4" />
+
+      <button onclick="loginDashboard()"
+        class="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-2xl py-4 font-bold">
+        Đăng nhập
+      </button>
+
+      <div id="loginError"
+        class="text-red-600 text-sm text-center hidden"></div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
   <div class="max-w-[2400px] mx-auto p-4">
 
     <div class="bg-white rounded-3xl shadow-lg p-6 mb-5">
@@ -123,6 +157,12 @@
             onclick="addPerson()"
             class="bg-purple-600 hover:bg-purple-700 text-white px-5 py-3 rounded-xl font-semibold">
             + Thêm người
+          </button>
+
+          <button
+            onclick="logoutDashboard()"
+            class="bg-red-600 hover:bg-red-700 text-white px-5 py-3 rounded-xl font-semibold">
+            Logout
           </button>
 
         </div>
@@ -262,6 +302,13 @@
       onSnapshot
     } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
+    import {
+      getAuth,
+      signInWithEmailAndPassword,
+      onAuthStateChanged,
+      signOut
+    } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+
     const firebaseConfig = {
       apiKey: "AIzaSyCakqu3JhQPeXmJ0grVNBRI8CkG5kfgD38",
       authDomain: "d03-dashboard.firebaseapp.com",
@@ -273,6 +320,10 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    let currentUser = null;
+    let userRole = 'viewer';
 
     const monthSelect = document.getElementById('monthSelect');
     const tableHeader = document.getElementById('tableHeader');
@@ -787,6 +838,8 @@
 
     function openCaseModal(personIndex, day) {
 
+      if(userRole !== 'admin') return;
+
       currentModalPerson = personIndex;
       currentModalDay = day;
 
@@ -1073,6 +1126,62 @@
     }
 
 
+
+    async function loginDashboard() {
+
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+
+      try {
+
+        await signInWithEmailAndPassword(auth, email, password);
+
+      } catch(error) {
+
+        const box = document.getElementById('loginError');
+
+        box.innerText = 'Sai email hoặc mật khẩu';
+        box.classList.remove('hidden');
+      }
+    }
+
+    async function logoutDashboard() {
+      await signOut(auth);
+    }
+
+    function applyRolePermissions() {
+
+      const isAdmin = currentUser &&
+        currentUser.email === 'admin@d03.com';
+
+      userRole = isAdmin ? 'admin' : 'viewer';
+
+      document.querySelectorAll('input, select').forEach(el => {
+
+        if(
+          el.id === 'monthSelect' ||
+          el.id === 'dayFilter' ||
+          el.id === 'sortSelect'
+        ) return;
+
+        el.disabled = !isAdmin;
+      });
+
+      if(!isAdmin) {
+
+        document.querySelectorAll('button').forEach(btn => {
+
+          if(
+            btn.innerText.includes('Thêm người') ||
+            btn.innerHTML.includes('×')
+          ) {
+            btn.style.display = 'none';
+          }
+        });
+      }
+    }
+
+
 function exportExcel() {
 
       const workbook = XLSX.utils.book_new();
@@ -1152,6 +1261,8 @@ function exportExcel() {
     window.applyDayFilter = applyDayFilter;
     window.deletePerson = deletePerson;
     window.deleteCase = deleteCase;
+    window.loginDashboard = loginDashboard;
+    window.logoutDashboard = logoutDashboard;
 
     window.updateField = updateField;
     window.updateCaseFee = updateCaseFee;
@@ -1164,6 +1275,28 @@ function exportExcel() {
     });
 
     initDayFilter();
+
+    
+    onAuthStateChanged(auth, (user) => {
+
+      if(user) {
+
+        currentUser = user;
+
+        document.getElementById('loginScreen')
+          .classList.add('hidden');
+
+        applyRolePermissions();
+
+      } else {
+
+        currentUser = null;
+
+        document.getElementById('loginScreen')
+          .classList.remove('hidden');
+      }
+    });
+
 
     initMonthOptions();
     loadMonthData();
